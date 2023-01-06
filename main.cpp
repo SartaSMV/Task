@@ -1,62 +1,89 @@
 #include <iostream>
 
-#include <memory>
+#include "Controller.h"
 
-#include "Mediator.h"
-
-class A : public ISubject
+class A : public Subject
 {
 public:
-	A() {};
-	~A() {};
+	A(std::shared_ptr<IMediator> mediator = nullptr) : Subject(mediator) {};
+	virtual ~A() {};
 
-	virtual void receiveMessage(const char& data) override
+	virtual void receiveMessage(std::shared_ptr<Subject> subject, const char& data) override
 	{
-		std::cout << "Object A" << std::endl;
+		if(data == 'A')
+		{
+			std::cout << "Hellow A" << std::endl;
+			sendMessage('B');
+		}
+		return;
 	};
-	virtual char getSymbol() const override
-	{
-		return symbol;
-	};
-private:
-	const char symbol = 'A';
-};
 
-class B : public ISubject
-{
-public:
-	B() {};
-	~B() {};
+	void setA()
+	{
 
-	virtual void receiveMessage(const char& data) override
-	{
-		std::cout << "Object B" << std::endl;
-	};
-	virtual char getSymbol() const override
-	{
-		return symbol;
 	};
 
 private:
-	const char symbol = 'B';
+
 };
 
+class B : public Subject
+{
+public:
+	B(std::shared_ptr<IMediator> mediator = nullptr) : Subject(mediator) {};
+	virtual ~B() {};
+
+	virtual void receiveMessage(std::shared_ptr<Subject> subject, const char& data) override
+	{
+		if (data == 'B')
+		{
+			std::cout << "Hellow B" << std::endl;
+		}
+		return;
+	};
+
+private:
+
+};
+
+class C : public Subject
+{
+public:
+	C(std::shared_ptr<IMediator> mediator = nullptr, int a = 0) : Subject(mediator), _a(a) {};
+	virtual ~C() {};
+
+	virtual void receiveMessage(std::shared_ptr<Subject> subject, const char& data) override
+	{
+		if (data == 'C')
+		{
+			std::cout << "Hellow C. int a = " << _a << std::endl;
+			_a++;
+		}
+
+		return;
+	};
+
+private:
+	int _a;
+};
 
 int main()
 {
-	std::shared_ptr<IMediator> mediator = std::make_shared<Mediator>();
-	std::shared_ptr <ISubject> a = std::make_shared<A>();
-	std::shared_ptr <ISubject> b = std::make_shared<B>();
+	auto controller = std::make_shared<Controller>();
+	auto a = std::make_shared <A>();
+	auto b = std::make_shared <B>();
+	auto c = std::make_shared <C>(nullptr, 8);
 
-	mediator->registerSub(std::dynamic_pointer_cast<A>(a));
-	mediator->registerSub(std::dynamic_pointer_cast<B>(b));
+	controller->registerSub(std::dynamic_pointer_cast<A>(a));
+	controller->registerSub(std::dynamic_pointer_cast<B>(b));
+	controller->registerSub(std::dynamic_pointer_cast<C>(c));
 
 	char ch = '8';
 	while (ch != '0')
 	{
 		std::cout << "Input char: ";
 		std::cin >> ch;
-		mediator->notify(ch);
+		controller->notify(nullptr, ch);
 	}
 	
 	return 0;
